@@ -41,6 +41,7 @@ namespace libdrawio {
     styleProps.insert("style:display-name", style_name.c_str());
     propList.insert("draw:style-name", style_name.c_str());
     painter->setStyle(styleProps);
+
     if (edge) {
       setEndPoints(id_map);
       setWaypoints(id_map);
@@ -51,6 +52,21 @@ namespace libdrawio {
       if (!target_id.empty()) {
         propList.insert("draw:end-shape", target_id);
       }
+
+      if (!parent_id.empty()) {
+        MXCell parent = id_map[parent_id];
+
+        geometry.sourcePoint.x += parent.geometry.x;
+        geometry.sourcePoint.y += parent.geometry.y;
+        geometry.targetPoint.x += parent.geometry.x;
+        geometry.targetPoint.y += parent.geometry.y;
+
+        for (auto& p : geometry.points) {
+          p.x += parent.geometry.x;
+          p.y += parent.geometry.y;
+        }
+      }
+
       propList.insert("svg:x1", geometry.sourcePoint.x / 100.);
       propList.insert("svg:y1", geometry.sourcePoint.y / 100.);
       propList.insert("svg:x2", geometry.targetPoint.x / 100.);
@@ -61,6 +77,13 @@ namespace libdrawio {
       painter->drawConnector(propList);
     }
     else if (vertex) {
+      if (!parent_id.empty())
+      {
+        MXCell parent = id_map[parent_id];
+        geometry.x += parent.geometry.x;
+        geometry.y += parent.geometry.y;
+      }
+
       double x, y;
       double rx = geometry.width / 200.; double ry = geometry.height / 200.;
       double cx = geometry.x / 100. + rx; double cy = geometry.y / 100. + ry;
