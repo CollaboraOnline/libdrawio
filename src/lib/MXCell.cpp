@@ -53,20 +53,6 @@ namespace libdrawio {
         propList.insert("draw:end-shape", target_id);
       }
 
-      if (!parent_id.empty()) {
-        MXCell parent = id_map[parent_id];
-
-        geometry.sourcePoint.x += parent.geometry.x;
-        geometry.sourcePoint.y += parent.geometry.y;
-        geometry.targetPoint.x += parent.geometry.x;
-        geometry.targetPoint.y += parent.geometry.y;
-
-        for (auto& p : geometry.points) {
-          p.x += parent.geometry.x;
-          p.y += parent.geometry.y;
-        }
-      }
-
       propList.insert("svg:x1", geometry.sourcePoint.x / 100.);
       propList.insert("svg:y1", geometry.sourcePoint.y / 100.);
       propList.insert("svg:x2", geometry.targetPoint.x / 100.);
@@ -1982,6 +1968,17 @@ namespace libdrawio {
         }
       }
     }
+
+    if (!source_id.empty() && !id_map[source_id].parent_id.empty()) {
+      MXCell parent = id_map[id_map[source_id].parent_id];
+      geometry.sourcePoint.x += parent.geometry.x;
+      geometry.sourcePoint.y += parent.geometry.y;
+    }
+    if (!target_id.empty() && !id_map[target_id].parent_id.empty()) {
+      MXCell parent = id_map[id_map[target_id].parent_id];
+      geometry.targetPoint.x += parent.geometry.x;
+      geometry.targetPoint.y += parent.geometry.y;
+    }
   }
 
   void MXCell::setEndpointInShape(double outX, double outY, const MXCell& shape,
@@ -2166,6 +2163,10 @@ namespace libdrawio {
       if (!source_id.empty()) {
         MXCell source = id_map[source_id];
         sourceX = source.geometry.x; sourceY = source.geometry.y;
+        if (!source.parent_id.empty()) {
+          MXCell parent = id_map[source.parent_id];
+          sourceX += parent.geometry.x; sourceY += parent.geometry.y;
+        }
         sourceWidth = source.geometry.width; sourceHeight = source.geometry.height;
       } else {
         sourceX = geometry.sourcePoint.x; sourceY = geometry.sourcePoint.y;
@@ -2174,6 +2175,11 @@ namespace libdrawio {
       if (!target_id.empty()) {
         MXCell target = id_map[target_id];
         targetX = target.geometry.x; targetY = target.geometry.y;
+        if (!target.parent_id.empty()) {
+          MXCell parent = id_map[target.parent_id];
+          sourceX += parent.geometry.x;
+          sourceY += parent.geometry.y;
+        }
         targetWidth = target.geometry.width; targetHeight = target.geometry.height;
       } else {
         targetX = geometry.targetPoint.x; targetY = geometry.targetPoint.y;
