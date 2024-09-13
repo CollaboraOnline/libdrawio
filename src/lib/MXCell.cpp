@@ -42,6 +42,10 @@ namespace libdrawio {
     propList.insert("draw:style-name", style_name.c_str());
     painter->setStyle(styleProps);
 
+    if (!data.label.empty()) {
+      painter->openGroup(librevenge::RVNGPropertyList());
+    }
+
     if (edge) {
       setEndPoints(id_map);
       setWaypoints(id_map);
@@ -1459,6 +1463,7 @@ namespace libdrawio {
       painter->insertText(processText(data.label));
       painter->closeParagraph();
       painter->endTextObject();
+      painter->closeGroup();
     }
     draw_count++;
   }
