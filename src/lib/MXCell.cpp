@@ -42,9 +42,7 @@ namespace libdrawio {
     propList.insert("draw:style-name", style_name.c_str());
     painter->setStyle(styleProps);
 
-    if (!data.label.empty()) {
-      painter->openGroup(librevenge::RVNGPropertyList());
-    }
+    painter->openGroup(librevenge::RVNGPropertyList());
 
     if (edge) {
       setEndPoints(id_map);
@@ -1452,19 +1450,19 @@ namespace libdrawio {
         painter->drawPath(propList);
       }
     }
+    propList.clear();
+    propList.insert("svg:x", geometry.x / 100.);
+    propList.insert("svg:y", geometry.y / 100.);
+    propList.insert("svg:width", geometry.width / 100.);
+    propList.insert("svg:height", geometry.height / 100.);
+    painter->startTextObject(propList);
     if (!data.label.empty()) {
-      propList.clear();
-      propList.insert("svg:x", geometry.x / 100.);
-      propList.insert("svg:y", geometry.y / 100.);
-      propList.insert("svg:width", geometry.width / 100.);
-      propList.insert("svg:height", geometry.height / 100.);
-      painter->startTextObject(propList);
       painter->openParagraph(propList);
       painter->insertText(processText(data.label));
       painter->closeParagraph();
-      painter->endTextObject();
-      painter->closeGroup();
     }
+    painter->endTextObject();
+    painter->closeGroup();
     draw_count++;
   }
 
