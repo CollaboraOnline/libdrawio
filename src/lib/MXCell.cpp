@@ -1459,6 +1459,9 @@ namespace libdrawio {
     propList.insert("svg:height", geometry.height / 100.);
     librevenge::RVNGPropertyList textStyleProps = getTextStyle();
     textStyleProps.insert("librevenge:span-id", draw_count);
+    propList.insert("fo:text-align", to_string(style.align).c_str());
+    propList.insert("draw:textarea-vertical-align", to_string(style.verticalAlign).c_str());
+    painter->setStyle(styleProps);
     painter->startTextObject(propList);
     if (!data.label.empty()) {
       painter->defineCharacterStyle(textStyleProps);
@@ -1733,24 +1736,24 @@ namespace libdrawio {
       else text_style.borderColor = xmlStringToColor((xmlChar *)(it->second.c_str()));
     }
     it = style_m.find("align"); if (it != style_m.end()) {
-      if (it->second == "left") text_style.align = LEFT;
-      else if (it->second == "center") text_style.align = CENTER;
-      else if (it->second == "right") text_style.align = RIGHT;
+      if (it->second == "left") style.align = LEFT;
+      else if (it->second == "center") style.align = CENTER;
+      else if (it->second == "right") style.align = RIGHT;
     }
     it = style_m.find("verticalAlign"); if (it != style_m.end()) {
-      if (it->second == "top") text_style.verticalAlign = TOP;
-      else if (it->second == "middle") text_style.verticalAlign = MIDDLE;
-      else if (it->second == "bottom") text_style.verticalAlign = BOTTOM;
+      if (it->second == "top") style.verticalAlign = TOP;
+      else if (it->second == "middle") style.verticalAlign = MIDDLE;
+      else if (it->second == "bottom") style.verticalAlign = BOTTOM;
     }
     it = style_m.find("labelPosition"); if (it != style_m.end()) {
-      if (it->second == "left") text_style.position = LEFT;
-      else if (it->second == "center") text_style.position = CENTER;
-      else if (it->second == "right") text_style.position = RIGHT;
+      if (it->second == "left") style.position = LEFT;
+      else if (it->second == "center") style.position = CENTER;
+      else if (it->second == "right") style.position = RIGHT;
     }
     it = style_m.find("labelVerticalPosition"); if (it != style_m.end()) {
-      if (it->second == "top") text_style.verticalPosition = TOP;
-      else if (it->second == "middle") text_style.verticalPosition = MIDDLE;
-      else if (it->second == "bottom") text_style.verticalPosition = BOTTOM;
+      if (it->second == "top") style.verticalPosition = TOP;
+      else if (it->second == "middle") style.verticalPosition = MIDDLE;
+      else if (it->second == "bottom") style.verticalPosition = BOTTOM;
     }
   }
 
@@ -2577,6 +2580,7 @@ namespace libdrawio {
                         getMarkerPath(style.endArrow.get()).c_str());
       styleProps.insert("draw:marker-end-width", style.endSize / 100.);
     }
+
     return styleProps;
   }
 

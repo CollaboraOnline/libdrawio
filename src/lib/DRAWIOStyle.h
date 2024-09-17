@@ -60,6 +60,10 @@ namespace libdrawio {
     boost::optional<MarkerType> endArrow = CLASSIC;
     bool endFill = true;
     double endSize = 6;
+    AlignH align = CENTER;
+    AlignV verticalAlign = MIDDLE;
+    AlignH position = CENTER;
+    AlignV verticalPosition = MIDDLE;
   };
 
   struct DRAWIOTextStyle {
@@ -68,10 +72,6 @@ namespace libdrawio {
     bool bold = false;
     bool italic = false;
     bool underline = false;
-    AlignH align = CENTER;
-    AlignV verticalAlign = MIDDLE;
-    AlignH position = CENTER;
-    AlignV verticalPosition = MIDDLE;
     boost::optional<Color> fontColor = Color(0, 0, 0, 1);
     boost::optional<Color> backgroundColor = boost::none;
     boost::optional<Color> borderColor = boost::none;

@@ -9,6 +9,7 @@
 #include <sstream>
 #include <string>
 #include <iomanip>
+#include <map>
 
 namespace libdrawio {
   enum Direction {
@@ -41,14 +42,34 @@ namespace libdrawio {
   enum AlignH {
     LEFT,
     CENTER,
-    RIGHT
+    RIGHT,
   };
+
+  inline std::string to_string(AlignH a)
+  {
+    static std::map<AlignH, std::string> map = {
+      {LEFT, "left"},
+      {CENTER, "center"}, 
+      {RIGHT, "right"}
+    };
+    return map[a];
+  }
 
   enum AlignV {
     TOP,
     MIDDLE,
     BOTTOM
   };
+
+  inline std::string to_string(AlignV a)
+  {
+    static std::map<AlignV, std::string> map = {
+      {TOP, "top"},
+      {MIDDLE, "middle"}, 
+      {BOTTOM, "bottom"}
+    };
+    return map[a];
+  }
 
   enum Shape {
     RECTANGLE,
