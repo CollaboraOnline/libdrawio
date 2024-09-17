@@ -1453,8 +1453,8 @@ namespace libdrawio {
 
     propList.clear();
     propList.insert("librevenge:span-id", draw_count);
-    propList.insert("svg:x", geometry.x / 100.);
-    propList.insert("svg:y", geometry.y / 100.);
+    propList.insert("svg:x", (geometry.x + (int)style.position*geometry.width) / 100.);
+    propList.insert("svg:y", (geometry.y + (int)style.verticalPosition*geometry.height) / 100.);
     propList.insert("svg:width", geometry.width / 100.);
     propList.insert("svg:height", geometry.height / 100.);
     librevenge::RVNGPropertyList textStyleProps = getTextStyle();
@@ -1750,7 +1750,7 @@ namespace libdrawio {
       else if (it->second == "center") style.position = CENTER;
       else if (it->second == "right") style.position = RIGHT;
     }
-    it = style_m.find("labelVerticalPosition"); if (it != style_m.end()) {
+    it = style_m.find("verticalLabelPosition"); if (it != style_m.end()) {
       if (it->second == "top") style.verticalPosition = TOP;
       else if (it->second == "middle") style.verticalPosition = MIDDLE;
       else if (it->second == "bottom") style.verticalPosition = BOTTOM;
@@ -2588,7 +2588,7 @@ namespace libdrawio {
     librevenge::RVNGPropertyList styleProps;
 
     styleProps.insert("style:font-name", text_style.fontFamily);
-    styleProps.insert("fo:font-size", text_style.fontSize, librevenge::RVNG_POINT);
+    styleProps.insert("fo:font-size", text_style.fontSize * 0.75, librevenge::RVNG_POINT);
     if (text_style.fontColor.has_value()) {
       styleProps.insert("fo:color", text_style.fontColor->to_string().c_str());
     }

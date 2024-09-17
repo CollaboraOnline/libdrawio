@@ -40,7 +40,7 @@ namespace libdrawio {
   }
 
   enum AlignH {
-    LEFT,
+    LEFT = -1,
     CENTER,
     RIGHT,
   };
@@ -56,7 +56,7 @@ namespace libdrawio {
   }
 
   enum AlignV {
-    TOP,
+    TOP = -1,
     MIDDLE,
     BOTTOM
   };
