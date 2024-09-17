@@ -2592,6 +2592,9 @@ namespace libdrawio {
     if (text_style.fontColor.has_value()) {
       styleProps.insert("fo:color", text_style.fontColor->to_string().c_str());
     }
+    if (text_style.backgroundColor.has_value()) {
+      styleProps.insert("fo:background-color", text_style.backgroundColor->to_string().c_str());
+    }
     styleProps.insert("fo:font-weight", text_style.bold ? "bold" : "normal");
     styleProps.insert("fo:font-style", text_style.italic ? "italic" : "normal");
     styleProps.insert("style:text-underline-style", text_style.underline ? "solid" : "none");
