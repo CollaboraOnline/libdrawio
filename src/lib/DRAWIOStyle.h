@@ -22,13 +22,7 @@ namespace libdrawio {
     Direction gradientDirection;
     boost::optional<Color> strokeColor = Color(0, 0, 0, 1);
     double strokeWidth;
-    AlignH align = CENTER;
-    AlignV verticalAlign = MIDDLE;
-    AlignH labelPosition = CENTER;
-    AlignV verticalLabelPosition = MIDDLE;
     bool flipH, flipV;
-    boost::optional<Color> labelBackgroundColor;
-    boost::optional<Color> labelBorderColor;
     bool shadow;
     bool dashed;
     bool rounded;
@@ -66,6 +60,21 @@ namespace libdrawio {
     boost::optional<MarkerType> endArrow = CLASSIC;
     bool endFill = true;
     double endSize = 6;
+  };
+
+  struct DRAWIOTextStyle {
+    librevenge::RVNGString fontFamily = "Helvetica";
+    double fontSize = 12;
+    bool bold = false;
+    bool italic = false;
+    bool underline = false;
+    AlignH align = CENTER;
+    AlignV verticalAlign = MIDDLE;
+    AlignH position = CENTER;
+    AlignV verticalPosition = MIDDLE;
+    boost::optional<Color> fontColor = Color(0, 0, 0, 1);
+    boost::optional<Color> backgroundColor = boost::none;
+    boost::optional<Color> borderColor = boost::none;
   };
 }
 

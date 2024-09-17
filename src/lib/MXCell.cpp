@@ -1450,15 +1450,22 @@ namespace libdrawio {
         painter->drawPath(propList);
       }
     }
+
     propList.clear();
+    propList.insert("librevenge:span-id", draw_count);
     propList.insert("svg:x", geometry.x / 100.);
     propList.insert("svg:y", geometry.y / 100.);
     propList.insert("svg:width", geometry.width / 100.);
     propList.insert("svg:height", geometry.height / 100.);
+    librevenge::RVNGPropertyList textStyleProps = getTextStyle();
+    textStyleProps.insert("librevenge:span-id", draw_count);
     painter->startTextObject(propList);
     if (!data.label.empty()) {
+      painter->defineCharacterStyle(textStyleProps);
       painter->openParagraph(propList);
+      painter->openSpan(propList);
       painter->insertText(processText(data.label));
+      painter->closeSpan();
       painter->closeParagraph();
     }
     painter->endTextObject();
@@ -1699,6 +1706,51 @@ namespace libdrawio {
       style.rotation = xmlStringToDouble((xmlChar*)(it->second.c_str()));
     it = style_m.find("edgeStyle"); if (it != style_m.end()) {
       if (it->second == "orthogonalEdgeStyle") style.edgeStyle = ORTHOGONAL;
+    }
+    it = style_m.find("fontFamily"); if (it != style_m.end())
+      text_style.fontFamily = it->second.c_str();
+    it = style_m.find("fontSize"); if (it != style_m.end())
+      text_style.fontSize = xmlStringToDouble((xmlChar*)(it->second.c_str()));
+    it = style_m.find("fontStyle"); if (it != style_m.end()) {
+      int style = xmlStringToDouble((xmlChar*)(it->second.c_str()));
+      text_style.bold = style & 1;
+      text_style.italic = style & 2;
+      text_style.underline = style & 4;
+    }
+    it = style_m.find("fontColor"); if (it != style_m.end()) {
+      if (it->second == "none") text_style.fontColor = boost::none;
+      else if (it->second == "default"); 
+      else text_style.fontColor = xmlStringToColor((xmlChar*)(it->second.c_str()));
+    }
+    it = style_m.find("labelBackgroundColor"); if (it != style_m.end()) {
+      if (it->second == "none") text_style.backgroundColor = boost::none;
+      else if (it->second == "default");
+      else text_style.backgroundColor = xmlStringToColor((xmlChar *)(it->second.c_str()));
+    }
+    it = style_m.find("labelBorderColor"); if (it != style_m.end()) {
+      if (it->second == "none") text_style.borderColor = boost::none;
+      else if (it->second == "default");
+      else text_style.borderColor = xmlStringToColor((xmlChar *)(it->second.c_str()));
+    }
+    it = style_m.find("align"); if (it != style_m.end()) {
+      if (it->second == "left") text_style.align = LEFT;
+      else if (it->second == "center") text_style.align = CENTER;
+      else if (it->second == "right") text_style.align = RIGHT;
+    }
+    it = style_m.find("verticalAlign"); if (it != style_m.end()) {
+      if (it->second == "top") text_style.verticalAlign = TOP;
+      else if (it->second == "middle") text_style.verticalAlign = MIDDLE;
+      else if (it->second == "bottom") text_style.verticalAlign = BOTTOM;
+    }
+    it = style_m.find("labelPosition"); if (it != style_m.end()) {
+      if (it->second == "left") text_style.position = LEFT;
+      else if (it->second == "center") text_style.position = CENTER;
+      else if (it->second == "right") text_style.position = RIGHT;
+    }
+    it = style_m.find("labelVerticalPosition"); if (it != style_m.end()) {
+      if (it->second == "top") text_style.verticalPosition = TOP;
+      else if (it->second == "middle") text_style.verticalPosition = MIDDLE;
+      else if (it->second == "bottom") text_style.verticalPosition = BOTTOM;
     }
   }
 
@@ -2525,6 +2577,21 @@ namespace libdrawio {
                         getMarkerPath(style.endArrow.get()).c_str());
       styleProps.insert("draw:marker-end-width", style.endSize / 100.);
     }
+    return styleProps;
+  }
+
+  librevenge::RVNGPropertyList MXCell::getTextStyle() {
+    librevenge::RVNGPropertyList styleProps;
+
+    styleProps.insert("style:font-name", text_style.fontFamily);
+    styleProps.insert("fo:font-size", text_style.fontSize, librevenge::RVNG_POINT);
+    if (text_style.fontColor.has_value()) {
+      styleProps.insert("fo:color", text_style.fontColor->to_string().c_str());
+    }
+    styleProps.insert("fo:font-weight", text_style.bold ? "bold" : "normal");
+    styleProps.insert("fo:font-style", text_style.italic ? "italic" : "normal");
+    styleProps.insert("style:text-underline-style", text_style.underline ? "solid" : "none");
+
     return styleProps;
   }
 } // namespace libdrawio

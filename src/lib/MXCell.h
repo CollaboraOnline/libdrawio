@@ -22,6 +22,7 @@ namespace libdrawio {
     librevenge::RVNGString style_str;
     void setStyle();
     DRAWIOStyle style;
+    DRAWIOTextStyle text_style;
     bool vertex, edge, connectable, visible, collapsed;
     librevenge::RVNGString parent_id, source_id, target_id;
     std::vector<librevenge::RVNGString> children; // holds references to child cells
@@ -36,6 +37,7 @@ namespace libdrawio {
               std::map<librevenge::RVNGString, MXCell> id_map);
     void setEndPoints(std::map<librevenge::RVNGString, MXCell> id_map);
     librevenge::RVNGPropertyList getStyle();
+    librevenge::RVNGPropertyList getTextStyle();
   private:
     struct Bounds {
       int x, y;
