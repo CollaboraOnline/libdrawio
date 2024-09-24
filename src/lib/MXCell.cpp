@@ -27,6 +27,95 @@
 #include <librevenge/librevenge.h>
 
 namespace libdrawio {
+  struct PathContext {
+    librevenge::RVNGPropertyListVector path;
+
+    PathContext(MXCell& cell)
+    {
+      origin = MXPoint(cell.geometry.x/100, cell.geometry.y/100);
+      width = cell.geometry.width/100; height = cell.geometry.height/100;
+      center = MXPoint(width/2, height/2);
+      direction = cell.style.direction;
+      angle = -cell.style.rotation * pi / 180;
+      if (vertical(direction)) {
+        origin.x += (width - height) / 2;
+        origin.y += (height - width) / 2;
+        double t = width; width = height; height = t;
+      }
+      if (direction == SOUTH) angle -= pi/2;
+      if (direction == WEST) angle -= pi;
+      if (direction == NORTH) angle += pi/2;
+    }
+
+    void moveTo(double x, double y)
+    {
+      addStep("M", {MXPoint(x, y)});
+    }
+
+    void lineTo(double x, double y)
+    {
+      addStep("L", {MXPoint(x, y)});
+    }
+
+    void quadTo(double x, double y, double x1, double y1)
+    {
+      addStep("Q", {MXPoint(x, y), MXPoint(x1, y1)});
+    }
+
+    void curveTo(double x, double y, double x1, double y1, double x2, double y2)
+    {
+      addStep("C", {MXPoint(x, y), MXPoint(x1, y1), MXPoint(x2, y2)});
+    }
+
+    void close()
+    {
+      addStep("Z", {});
+    }
+
+    void addPoints(const std::vector<MXPoint>& points, bool close_path)
+    {
+      if (points.empty()) return;
+      MXPoint p = points[0];
+      moveTo(p.x, p.y);
+      int i = 1;
+      while (i < points.size() - (close_path ? 0 : 1)) {
+        p = points[i];
+        lineTo(p.x, p.y);
+        i++;
+      }
+      if (close_path) close();
+      else {
+        p = points[i];
+        lineTo(p.x, p.y);
+      }
+    }
+
+    MXPoint center, origin;
+    double width, height, angle;
+    Direction direction;
+
+  private:
+    void addStep(const char* action, std::vector<MXPoint>&& points)
+    {
+      for (auto& point : points) {
+        point = origin + point.rotate(center, angle);
+      }
+      librevenge::RVNGPropertyList step;
+      step.insert("librevenge:path-action", action);
+      if (points.size() >= 1) {
+        step.insert("svg:x", points[0].x);
+        step.insert("svg:y", points[0].y);
+      } if (points.size() >= 2) {
+        step.insert("svg:x1", points[1].x);
+        step.insert("svg:y1", points[1].y);
+      } if (points.size() >= 3) {
+        step.insert("svg:x2", points[2].x);
+        step.insert("svg:y2", points[2].y);
+      }
+      path.append(step);
+    }
+  };
+  
   int MXCell::draw_count = 0;
 
   void MXCell::draw(librevenge::RVNGDrawingInterface *painter,
@@ -75,6 +164,8 @@ namespace libdrawio {
       double x, y;
       double rx = geometry.width / 200.; double ry = geometry.height / 200.;
       double cx = geometry.x / 100. + rx; double cy = geometry.y / 100. + ry;
+      PathContext c(*this);
+      double w = c.width; double h = c.height;
       double angle = -style.rotation * boost::math::double_constants::pi / 180;
       if (style.shape == RECTANGLE) {
         propList.insert("svg:x", geometry.x / 100.);
@@ -106,69 +197,70 @@ namespace libdrawio {
         painter->drawEllipse(propList);
       }
       else if (style.shape == TRIANGLE) {
-        librevenge::RVNGPropertyListVector path;
-        librevenge::RVNGPropertyList point;
-        switch (style.direction) {
-        case NORTH:
-          x = cx; y = cy - ry;
-          point = getPoint(x, y, cx, cy, angle);
-          point.insert("librevenge:path-action", "M");
-          path.append(point); point.clear();
-          x = cx + rx; y = cy + ry;
-          point = getPoint(x, y, cx, cy, angle);
-          point.insert("librevenge:path-action", "L");
-          path.append(point); point.clear();
-          x = cx - rx; y = cy + ry;
-          point = getPoint(x, y, cx, cy, angle);
-          point.insert("librevenge:path-action", "L");
-          path.append(point); point.clear();
-          break;
-        case EAST:
-          x = cx - rx; y = cy - ry;
-          point = getPoint(x, y, cx, cy, angle);
-          point.insert("librevenge:path-action", "M");
-          path.append(point); point.clear();
-          x = cx + rx; y = cy;
-          point = getPoint(x, y, cx, cy, angle);
-          point.insert("librevenge:path-action", "L");
-          path.append(point); point.clear();
-          x = cx - rx; y = cy + ry;
-          point = getPoint(x, y, cx, cy, angle);
-          point.insert("librevenge:path-action", "L");
-          path.append(point); point.clear();
-          break;
-        case SOUTH:
-          x = cx - rx; y = cy - ry;
-          point = getPoint(x, y, cx, cy, angle);
-          point.insert("librevenge:path-action", "M");
-          path.append(point); point.clear();
-          x = cx + rx; y = cy - ry;
-          point = getPoint(x, y, cx, cy, angle);
-          point.insert("librevenge:path-action", "L");
-          path.append(point); point.clear();
-          x = cx; y = cy + ry;
-          point = getPoint(x, y, cx, cy, angle);
-          point.insert("librevenge:path-action", "L");
-          path.append(point); point.clear();
-          break;
-        case WEST:
-          x = cx - rx; y = cy;
-          point = getPoint(x, y, cx, cy, angle);
-          point.insert("librevenge:path-action", "M");
-          path.append(point); point.clear();
-          x = cx + rx; y = cy - ry;
-          point = getPoint(x, y, cx, cy, angle);
-          point.insert("librevenge:path-action", "L");
-          path.append(point); point.clear();
-          x = cx + rx; y = cy + ry;
-          point = getPoint(x, y, cx, cy, angle);
-          point.insert("librevenge:path-action", "L");
-          path.append(point); point.clear();
-          break;
-        }
-        point.insert("librevenge:path-action", "Z");
-        path.append(point); point.clear();
-        propList.insert("svg:d", path);
+        // librevenge::RVNGPropertyListVector path;
+        // librevenge::RVNGPropertyList point;
+        // switch (style.direction) {
+        // case NORTH:
+        //   x = cx; y = cy - ry;
+        //   point = getPoint(x, y, cx, cy, angle);
+        //   point.insert("librevenge:path-action", "M");
+        //   path.append(point); point.clear();
+        //   x = cx + rx; y = cy + ry;
+        //   point = getPoint(x, y, cx, cy, angle);
+        //   point.insert("librevenge:path-action", "L");
+        //   path.append(point); point.clear();
+        //   x = cx - rx; y = cy + ry;
+        //   point = getPoint(x, y, cx, cy, angle);
+        //   point.insert("librevenge:path-action", "L");
+        //   path.append(point); point.clear();
+        //   break;
+        // case EAST:
+        //   x = cx - rx; y = cy - ry;
+        //   point = getPoint(x, y, cx, cy, angle);
+        //   point.insert("librevenge:path-action", "M");
+        //   path.append(point); point.clear();
+        //   x = cx + rx; y = cy;
+        //   point = getPoint(x, y, cx, cy, angle);
+        //   point.insert("librevenge:path-action", "L");
+        //   path.append(point); point.clear();
+        //   x = cx - rx; y = cy + ry;
+        //   point = getPoint(x, y, cx, cy, angle);
+        //   point.insert("librevenge:path-action", "L");
+        //   path.append(point); point.clear();
+        //   break;
+        // case SOUTH:
+        //   x = cx - rx; y = cy - ry;
+        //   point = getPoint(x, y, cx, cy, angle);
+        //   point.insert("librevenge:path-action", "M");
+        //   path.append(point); point.clear();
+        //   x = cx + rx; y = cy - ry;
+        //   point = getPoint(x, y, cx, cy, angle);
+        //   point.insert("librevenge:path-action", "L");
+        //   path.append(point); point.clear();
+        //   x = cx; y = cy + ry;
+        //   point = getPoint(x, y, cx, cy, angle);
+        //   point.insert("librevenge:path-action", "L");
+        //   path.append(point); point.clear();
+        //   break;
+        // case WEST:
+        //   x = cx - rx; y = cy;
+        //   point = getPoint(x, y, cx, cy, angle);
+        //   point.insert("librevenge:path-action", "M");
+        //   path.append(point); point.clear();
+        //   x = cx + rx; y = cy - ry;
+        //   point = getPoint(x, y, cx, cy, angle);
+        //   point.insert("librevenge:path-action", "L");
+        //   path.append(point); point.clear();
+        //   x = cx + rx; y = cy + ry;
+        //   point = getPoint(x, y, cx, cy, angle);
+        //   point.insert("librevenge:path-action", "L");
+        //   path.append(point); point.clear();
+        //   break;
+        // }
+        // point.insert("librevenge:path-action", "Z");
+        // path.append(point); point.clear();
+        c.addPoints({MXPoint(0,0), MXPoint(w,h/2), MXPoint(0,h)}, true);
+        propList.insert("svg:d", c.path);
         painter->drawPath(propList);
       }
       else if (style.shape == CALLOUT) {
@@ -306,8 +398,8 @@ namespace libdrawio {
         }
         point.insert("librevenge:path-action", "Z");
         path.append(point); point.clear();
-        propList.insert("svg:points", path);
-        painter->drawPolygon(propList);
+        propList.insert("svg:d", path);
+        painter->drawPath(propList);
       }
       else if (style.shape == PROCESS) {
         librevenge::RVNGPropertyListVector path;

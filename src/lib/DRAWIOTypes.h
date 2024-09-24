@@ -10,6 +10,7 @@
 #include <string>
 #include <iomanip>
 #include <map>
+#include <boost/math/constants/constants.hpp>
 
 namespace libdrawio {
   enum Direction {
@@ -177,6 +178,8 @@ namespace libdrawio {
     librevenge::RVNGBinaryData m_data;
     TextFormat m_format;
   };
+
+  const double pi = boost::math::double_constants::pi;
 }
 
 #endif
