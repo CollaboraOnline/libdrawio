@@ -162,7 +162,6 @@ namespace libdrawio {
         geometry.y += parent.geometry.y;
       }
 
-      double x, y, x1, y1;
       double rx = geometry.width / 200.; double ry = geometry.height / 200.;
       double cx = geometry.x / 100. + rx; double cy = geometry.y / 100. + ry;
       PathContext c(*this);
