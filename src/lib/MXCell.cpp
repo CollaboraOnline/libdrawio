@@ -41,6 +41,7 @@ namespace libdrawio {
         origin.x += (width - height) / 2;
         origin.y += (height - width) / 2;
         double t = width; width = height; height = t;
+        t = center.x; center.x = center.y; center.y = t;
       }
       if (direction == SOUTH) angle -= pi/2;
       if (direction == WEST) angle -= pi;
@@ -236,7 +237,6 @@ namespace libdrawio {
       }
       else if (style.shape == PARALLELOGRAM) {
         double dx = style.parallelogramSize/100;
-        x = style.parallelogramSize/100; y = 0;
         c.addPoints({
           MXPoint(0, h), MXPoint(dx, 0), MXPoint(w, 0), MXPoint(w-dx, h)
         }, true);
@@ -246,7 +246,7 @@ namespace libdrawio {
       else if (style.shape == HEXAGON) {
         double s = style.hexagonSize/100;
         c.addPoints({
-          MXPoint(s, 0), MXPoint(w-s, y), MXPoint(w, h/2), 
+          MXPoint(s, 0), MXPoint(w-s, 0), MXPoint(w, h/2), 
           MXPoint(w-s, h), MXPoint(s, h), MXPoint(0, h/2)
         }, true);
         propList.insert("svg:d", c.path);
@@ -310,7 +310,7 @@ namespace libdrawio {
         painter->drawPath(propList);
       }
       else if (style.shape == DOCUMENT) {
-        double dy = h * style.documentSize / 100;
+        double dy = h * style.documentSize;
         double fy = 1.4;
         c.moveTo(0, 0);
         c.lineTo(w, 0);
@@ -322,7 +322,7 @@ namespace libdrawio {
         painter->drawPath(propList);
       }
       else if (style.shape == TAPE) {
-        double dy = h * style.tapeSize / 100;
+        double dy = h * style.tapeSize;
         double fy = 1.4;
         c.moveTo(0, dy/2);
         c.quadTo(w/4, dy*fy, w/2, dy/2);
@@ -340,7 +340,7 @@ namespace libdrawio {
         c.lineTo(w, 0);
         c.quadTo(w-2*s, h/2, w, h);
         c.lineTo(s, h);
-        c.quadTo(w-2*s, h/2, s, 0);
+        c.quadTo(s-2*s, h/2, s, 0);
         c.close();
         propList.insert("svg:d", c.path);
         painter->drawPath(propList);
